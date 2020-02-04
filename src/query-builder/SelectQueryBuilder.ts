@@ -178,7 +178,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
      */
     select(selection?: string|string[]|((qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any>)|FindOptionsSelect<Entity>, selectionAliasName?: string): SelectQueryBuilder<Entity> {
         this.expressionMap.queryType = "select";
-        if (selection instanceof Array) {
+        if (Array.isArray(selection)) {
             this.expressionMap.selects = (selection as string[]).map(selection => ({ selection: selection }));
 
         } else if (selection instanceof Function) {
@@ -223,7 +223,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
         if (!selection)
             return this;
 
-        if (selection instanceof Array) {
+        if (Array.isArray(selection)) {
             this.expressionMap.selects = this.expressionMap.selects.concat((selection as string[]).map(selection => ({ selection: selection })));
 
         } else if (selection instanceof Function) {
