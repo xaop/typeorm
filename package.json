@@ -1,9 +1,8 @@
 {
   "name": "typeorm",
-  "private": true,
+  "private": false,
   "version": "0.2.22",
-  "description":
-    "Data-Mapper ORM for TypeScript, ES7, ES6, ES5. Supports MySQL, PostgreSQL, MariaDB, SQLite, MS SQL Server, Oracle, MongoDB databases.",
+  "description": "Data-Mapper ORM for TypeScript, ES7, ES6, ES5. Supports MySQL, PostgreSQL, MariaDB, SQLite, MS SQL Server, Oracle, MongoDB databases.",
   "license": "MIT",
   "readmeFilename": "README.md",
   "author": {
@@ -12,32 +11,23 @@
   },
   "main": "./index.js",
   "browser": {
-    "./browser/driver/postgres/PostgresDriver.js":
-      "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/oracle/OracleDriver.ts":
-      "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/sap/SapDriver.ts":
-      "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/mysql/MysqlDriver.js":
-      "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/sqlserver/SqlServerDriver.ts":
-      "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/mongodb/MongoDriver.js":
-      "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/driver/mongodb/MongoQueryRunner.js":
-      "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/entity-manager/MongoEntityManager.js":
-      "./browser/platform/BrowserDisabledDriversDummy.js",
-    "./browser/repository/MongoRepository.js":
-      "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/postgres/PostgresDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/oracle/OracleDriver.ts": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/sap/SapDriver.ts": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/mysql/MysqlDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/sqlserver/SqlServerDriver.ts": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/mongodb/MongoDriver.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/driver/mongodb/MongoQueryRunner.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/entity-manager/MongoEntityManager.js": "./browser/platform/BrowserDisabledDriversDummy.js",
+    "./browser/repository/MongoRepository.js": "./browser/platform/BrowserDisabledDriversDummy.js",
     "./index.js": "./browser/index.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/xaop/typeorm.git"
+    "url": "https://github.com/typeorm/typeorm.git"
   },
   "bugs": {
-    "url": "https://github.com/xaop/typeorm/issues"
+    "url": "https://github.com/typeorm/typeorm/issues"
   },
   "tags": [
     "orm",
@@ -122,14 +112,15 @@
     "yargs": "^13.2.1"
   },
   "lint-staged": {
-    "*.ts": ["tslint --fix", "git add"]
+    "*.ts": [
+      "tslint --fix",
+      "git add"
+    ]
   },
   "scripts": {
     "test-ci": "gulp ci-tests",
-    "test":
-      "rimraf ./build && tsc && mocha --file ./build/compiled/test/utils/test-setup.js --bail --recursive --timeout 60000 ./build/compiled/test",
-    "test-fast":
-      "mocha --file ./build/compiled/test/utils/test-setup.js --bail --recursive --timeout 60000 ./build/compiled/test",
+    "test": "rimraf ./build && tsc && mocha --file ./build/compiled/test/utils/test-setup.js --bail --recursive --timeout 60000 ./build/compiled/test",
+    "test-fast": "mocha --file ./build/compiled/test/utils/test-setup.js --bail --recursive --timeout 60000 ./build/compiled/test",
     "compile": "rimraf ./build && tsc",
     "package": "gulp package",
     "lint": "tslint -p .",
@@ -146,9 +137,16 @@
   "nyc": {
     "all": true,
     "cache": false,
-    "exclude": ["**/*.d.ts"],
-    "extension": [".ts"],
-    "include": ["build/compiled/src/**", "src/**"],
+    "exclude": [
+      "**/*.d.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "include": [
+      "build/compiled/src/**",
+      "src/**"
+    ],
     "reporter": "json"
   }
 }

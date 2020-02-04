@@ -8,3 +8,8 @@ ormconfig.json
 ormlogs.log
 npm-debug.log
 /test/github-issues/799/tmp/*
+
+# VIM stuff
+/**/*.swp
+Session.vim
+.vimrc
