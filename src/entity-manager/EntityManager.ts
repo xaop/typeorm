@@ -284,7 +284,7 @@ export class EntityManager {
         if (!plainObjectOrObjects)
             return metadata.create(this.queryRunner);
 
-        if (plainObjectOrObjects instanceof Array)
+        if (Array.isArray(plainObjectOrObjects))
             return plainObjectOrObjects.map(plainEntityLike => this.create(entityClass as any, plainEntityLike));
 
         const mergeIntoEntity = metadata.create(this.queryRunner);
@@ -406,7 +406,7 @@ export class EntityManager {
             target = target.options.name;
 
         // if user passed empty array of entities then we don't need to do anything
-        if (entity instanceof Array && entity.length === 0)
+        if (Array.isArray(entity) && entity.length === 0)
             return Promise.resolve(entity);
 
         // execute save operation
@@ -466,7 +466,7 @@ export class EntityManager {
         const options = target ? maybeOptions : maybeEntityOrOptions as SaveOptions;
 
         // if user passed empty array of entities then we don't need to do anything
-        if (entity instanceof Array && entity.length === 0)
+        if (Array.isArray(entity) && entity.length === 0)
             return Promise.resolve(entity);
 
         // execute save operation
@@ -485,7 +485,7 @@ export class EntityManager {
     async insert<Entity>(target: ObjectType<Entity>|EntitySchema<Entity>|string, entity: QueryDeepPartialEntity<Entity>|(QueryDeepPartialEntity<Entity>[])): Promise<InsertResult> {
 
         // TODO: Oracle does not support multiple values. Need to create another nice solution.
-        if (this.connection.driver instanceof OracleDriver && entity instanceof Array) {
+        if (this.connection.driver instanceof OracleDriver && Array.isArray(entity)) {
             const results = await Promise.all(entity.map(entity => this.insert(target, entity)));
             return results.reduce((mergedResult, result) => Object.assign(mergedResult, result), {} as InsertResult);
         }
@@ -509,7 +509,7 @@ export class EntityManager {
         if (criteria === undefined ||
             criteria === null ||
             criteria === "" ||
-            (criteria instanceof Array && criteria.length === 0)) {
+            (Array.isArray(criteria) && criteria.length === 0)) {
 
             return Promise.reject(new Error(`Empty criteria(s) are not allowed for the update method.`));
         }
@@ -517,7 +517,7 @@ export class EntityManager {
         if (typeof criteria === "string" ||
             typeof criteria === "number" ||
             criteria instanceof Date ||
-            criteria instanceof Array) {
+            Array.isArray(criteria)) {
 
             return this.createQueryBuilder()
                 .update(target)
@@ -547,7 +547,7 @@ export class EntityManager {
         if (criteria === undefined ||
             criteria === null ||
             criteria === "" ||
-            (criteria instanceof Array && criteria.length === 0)) {
+            (Array.isArray(criteria) && criteria.length === 0)) {
 
             return Promise.reject(new Error(`Empty criteria(s) are not allowed for the delete method.`));
         }
@@ -555,7 +555,7 @@ export class EntityManager {
         if (typeof criteria === "string" ||
             typeof criteria === "number" ||
             criteria instanceof Date ||
-            criteria instanceof Array) {
+            Array.isArray(criteria)) {
 
             return this.createQueryBuilder()
                 .delete()
