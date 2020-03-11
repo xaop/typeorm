@@ -1,0 +1,1 @@
+{"version":3,"file":"index.js","sourceRoot":"","sources":["../../../../src/typed-entity-schema/index.ts"],"names":[],"mappings":";;;AAAA,wBAAgC;AAYhC;;GAEG;AACH,gBAA0B,IAAwC,EAAE,OAA+B;IAC/F,IAAM,UAAU,GAAG,OAAO,IAAI,KAAK,QAAQ,CAAC,CAAC,CAAC,IAAI,CAAC,CAAC,CAAC,IAAI,CAAC,IAAI,CAAC;IAC/D,MAAM,CAAC,IAAI,gBAAY,oBACnB,IAAI,EAAE,UAAU,IACb,OAAO,EACZ,CAAC;AACP,CAAC;AAND,wBAMC"}
