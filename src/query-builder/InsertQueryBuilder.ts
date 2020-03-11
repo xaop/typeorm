@@ -2,7 +2,6 @@ import {CockroachDriver} from "../driver/cockroachdb/CockroachDriver";
 import {ObserverExecutor} from "../observer/ObserverExecutor";
 import {QueryBuilder} from "./QueryBuilder";
 import {ObjectLiteral} from "../common/ObjectLiteral";
-import {ObjectType} from "../common/ObjectType";
 import {QueryDeepPartialEntity} from "./QueryPartialEntity";
 import {SqlServerDriver} from "../driver/sqlserver/SqlServerDriver";
 import {PostgresDriver} from "../driver/postgres/PostgresDriver";
@@ -16,7 +15,7 @@ import {ReturningResultsEntityUpdator} from "./ReturningResultsEntityUpdator";
 import {AbstractSqliteDriver} from "../driver/sqlite-abstract/AbstractSqliteDriver";
 import {SqljsDriver} from "../driver/sqljs/SqljsDriver";
 import {BroadcasterResult} from "../subscriber/BroadcasterResult";
-import {EntitySchema} from "../";
+import {EntitySchema, EntityTarget} from "../";
 import {OracleDriver} from "../driver/oracle/OracleDriver";
 import {AuroraDataApiDriver} from "../driver/aurora-data-api/AuroraDataApiDriver";
 
@@ -60,14 +59,12 @@ export class InsertQueryBuilder<Entity> extends QueryBuilder<Entity> {
             // console.timeEnd(".value sets");
 
             // call before insertion methods in listeners and subscribers
-            if (this.expressionMap.callObservers) {
-                if (this.expressionMap.callListeners === true && this.expressionMap.mainAlias!.hasMetadata) {
-                    const broadcastResult = new BroadcasterResult();
-                    valueSets.forEach(valueSet => {
-                        queryRunner.broadcaster.broadcastBeforeInsertEvent(broadcastResult, this.expressionMap.mainAlias!.metadata, valueSet);
-                    });
-                    if (broadcastResult.promises.length > 0) await Promise.all(broadcastResult.promises);
-                }
+            if (this.expressionMap.callListeners === true && this.expressionMap.mainAlias!.hasMetadata) {
+                const broadcastResult = new BroadcasterResult();
+                valueSets.forEach(valueSet => {
+                    queryRunner.broadcaster.broadcastBeforeInsertEvent(broadcastResult, this.expressionMap.mainAlias!.metadata, valueSet);
+                });
+                if (broadcastResult.promises.length > 0) await Promise.all(broadcastResult.promises);
             }
 
             // if update entity mode is enabled we may need extra columns for the returning statement
@@ -150,8 +147,8 @@ export class InsertQueryBuilder<Entity> extends QueryBuilder<Entity> {
     /**
      * Specifies INTO which entity's table insertion will be executed.
      */
-    into<T>(entityTarget: ObjectType<T>|EntitySchema<T>|string, columns?: string[]): InsertQueryBuilder<T> {
-        entityTarget = entityTarget instanceof EntitySchema ? entityTarget.options.name : entityTarget;
+    into<T>(entityTarget: EntityTarget<any>, columns?: string[]): InsertQueryBuilder<T> {
+        entityTarget = entityTarget instanceof EntitySchema ? entityTarget.options.name!! : entityTarget;
         const mainAlias = this.createFromAlias(entityTarget);
         this.expressionMap.setMainAlias(mainAlias);
         this.expressionMap.insertColumns = columns || [];
