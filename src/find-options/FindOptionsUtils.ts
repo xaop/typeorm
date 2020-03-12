@@ -48,7 +48,7 @@ export function normalizeFindOptions<T>(options: FindOptions<T>): FindOptions<T>
         const valueKeys = Object.keys(obj);
         if (valueKeys.length === 1) {
             let value = obj[valueKeys[0]];
-            if (value instanceof Object && !(value instanceof Array) && !(value instanceof Function))
+            if (value instanceof Object && !(Array.isArray(value)) && !(value instanceof Function))
                 value = recursively$FindOption(value);
 
             if (valueKeys[0] === "$any") {
@@ -88,7 +88,7 @@ export function normalizeFindOptions<T>(options: FindOptions<T>): FindOptions<T>
 
     const recursivelyWhere = <T extends any>(where: T): T => {
 
-        if (where instanceof Array)
+        if (Array.isArray(where))
             return where.map((where: any) => recursivelyWhere(where));
 
         return Object.keys(where).reduce((newWhere, key) => {

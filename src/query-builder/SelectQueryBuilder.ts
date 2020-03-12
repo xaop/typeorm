@@ -178,7 +178,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
      */
     select(selection?: string|string[]|((qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any>)|FindOptionsSelect<Entity>, selectionAliasName?: string): SelectQueryBuilder<Entity> {
         this.expressionMap.queryType = "select";
-        if (selection instanceof Array) {
+        if (Array.isArray(selection)) {
             this.expressionMap.selects = (selection as string[]).map(selection => ({ selection: selection }));
 
         } else if (selection instanceof Function) {
@@ -223,7 +223,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
         if (!selection)
             return this;
 
-        if (selection instanceof Array) {
+        if (Array.isArray(selection)) {
             this.expressionMap.selects = this.expressionMap.selects.concat((selection as string[]).map(selection => ({ selection: selection })));
 
         } else if (selection instanceof Function) {
@@ -2297,7 +2297,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
 
     protected buildSelect(select: FindOptionsSelect<any>, metadata: EntityMetadata, alias: string, embedPrefix?: string) {
 
-        if (select instanceof Array) {
+        if (Array.isArray(select)) {
             select.forEach(select => {
                 this.selects.push(this.expressionMap.mainAlias!.name + "." + (select as string));
             });
@@ -2343,7 +2343,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
         if (!relations)
             return;
 
-        if (relations instanceof Array) {
+        if (Array.isArray(relations)) {
             relations.forEach(relationName => {
                 const propertyPath = embedPrefix ? embedPrefix + "." + relationName : relationName;
                 const relation = metadata.findRelationWithPropertyPath(propertyPath);
@@ -2418,7 +2418,7 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
     protected buildWhere(where: any, metadata: EntityMetadata, alias: string, embedPrefix?: string): string {
         let condition: string = "";
         let parameterIndex = Object.keys(this.expressionMap.nativeParameters).length;
-        if (where instanceof Array) {
+        if (Array.isArray(where)) {
             condition = ("(" + where.map(whereItem => {
                 return this.buildWhere(whereItem, metadata, alias, embedPrefix);
             }).filter(condition => !!condition).map(condition => "(" + condition + ")").join(" OR ") + ")");

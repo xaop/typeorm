@@ -195,7 +195,7 @@ export class MongoEntityManager extends EntityManager {
     async insert<Entity>(target: ObjectType<Entity> | EntitySchema<Entity> | string, entity: QueryDeepPartialEntity<Entity> | QueryDeepPartialEntity<Entity>[]): Promise<InsertResult> {
         // todo: convert entity to its database name
         const result = new InsertResult();
-        if (entity instanceof Array) {
+        if (Array.isArray(entity)) {
             result.raw = await this.insertMany(target, entity);
             Object.keys(result.raw.insertedIds).forEach((key: any) => {
                 let insertedId = result.raw.insertedIds[key];
@@ -219,7 +219,7 @@ export class MongoEntityManager extends EntityManager {
      * Does not check if entity exist in the database.
      */
     async update<Entity>(target: ObjectType<Entity>|EntitySchema<Entity>|string, criteria: string|string[]|number|number[]|Date|Date[]|ObjectID|ObjectID[]|FindOptionsWhere<Entity>, partialEntity: QueryDeepPartialEntity<Entity>): Promise<UpdateResult> {
-        if (criteria instanceof Array) {
+        if (Array.isArray(criteria)) {
             await Promise.all((criteria as any[]).map(criteriaItem => {
                 return this.update(target, criteriaItem, partialEntity);
             }));
@@ -239,7 +239,7 @@ export class MongoEntityManager extends EntityManager {
      * Does not check if entity exist in the database.
      */
     async delete<Entity>(target: ObjectType<Entity>|EntitySchema<Entity>|string, criteria: string|string[]|number|number[]|Date|Date[]|ObjectID|ObjectID[]|FindOptionsWhere<Entity>): Promise<DeleteResult> {
-        if (criteria instanceof Array) {
+        if (Array.isArray(criteria)) {
             await Promise.all((criteria as any[]).map(criteriaItem => {
                 return this.delete(target, criteriaItem);
             }));
@@ -684,7 +684,7 @@ export class MongoEntityManager extends EntityManager {
      * Converts FindOptions into mongodb select by criteria.
      */
     protected convertFindOptionsSelectToProjectCriteria(select: FindOptionsSelect<any>) {
-        if (select instanceof Array) {
+        if (Array.isArray(select)) {
             return select.reduce((projectCriteria, key) => {
                 projectCriteria[key] = 1;
                 return projectCriteria;

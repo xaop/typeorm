@@ -46,7 +46,7 @@ export class RelationLoader {
      *              INNER JOIN post Post ON Post.category=category.id WHERE Post.id=1
      */
     loadManyToOneOrOneToOneOwner(relation: RelationMetadata, entityOrEntities: ObjectLiteral|ObjectLiteral[], queryRunner?: QueryRunner, queryBuilder?: SelectQueryBuilder<any>): Promise<any> {
-        const entities = entityOrEntities instanceof Array ? entityOrEntities : [entityOrEntities];
+        const entities = Array.isArray(entityOrEntities) ? entityOrEntities : [entityOrEntities];
 
         const qb = queryBuilder ? queryBuilder : this.connection
             .createQueryBuilder(queryRunner)
@@ -98,7 +98,7 @@ export class RelationLoader {
      * WHERE post.[joinColumn.name] = entity[joinColumn.referencedColumn]
      */
     loadOneToManyOrOneToOneNotOwner(relation: RelationMetadata, entityOrEntities: ObjectLiteral|ObjectLiteral[], queryRunner?: QueryRunner, queryBuilder?: SelectQueryBuilder<any>): Promise<any> {
-        const entities = entityOrEntities instanceof Array ? entityOrEntities : [entityOrEntities];
+        const entities = Array.isArray(entityOrEntities) ? entityOrEntities : [entityOrEntities];
         const columns = relation.inverseRelation!.joinColumns;
 
         const qb = queryBuilder ? queryBuilder : this.connection
@@ -144,7 +144,7 @@ export class RelationLoader {
      * AND post_categories.categoryId = category.id
      */
     loadManyToManyOwner(relation: RelationMetadata, entityOrEntities: ObjectLiteral|ObjectLiteral[], queryRunner?: QueryRunner, queryBuilder?: SelectQueryBuilder<any>): Promise<any> {
-        const entities = entityOrEntities instanceof Array ? entityOrEntities : [entityOrEntities];
+        const entities = Array.isArray(entityOrEntities) ? entityOrEntities : [entityOrEntities];
 
         const qb = queryBuilder ? queryBuilder : this.connection
             .createQueryBuilder(queryRunner)
@@ -188,7 +188,7 @@ export class RelationLoader {
      * AND post_categories.categoryId = post_categories.categoryId
      */
     loadManyToManyNotOwner(relation: RelationMetadata, entityOrEntities: ObjectLiteral|ObjectLiteral[], queryRunner?: QueryRunner, queryBuilder?: SelectQueryBuilder<any>): Promise<any> {
-        const entities = entityOrEntities instanceof Array ? entityOrEntities : [entityOrEntities];
+        const entities = Array.isArray(entityOrEntities) ? entityOrEntities : [entityOrEntities];
 
         const qb = queryBuilder ? queryBuilder : this.connection
             .createQueryBuilder(queryRunner)
