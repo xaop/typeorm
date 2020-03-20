@@ -81,11 +81,18 @@ export class OrmUtils {
                 //     propertyKey = "__" + key + "__";
                 // }
 
+                // Julien: I added the belog check on Date prototype name
+                // because we had a bug where dates values were not 'instanceof Date'. We then lost or date values.
+                // I use this proposion to have a better check if the date is a date:
+                // https://stackoverflow.com/questions/643782/how-to-check-whether-an-object-is-a-date
+
                 if (this.isObject(source[propertyKey])
                     && !(source[propertyKey] instanceof Map)
                     && !(source[propertyKey] instanceof Set)
                     && !(source[propertyKey] instanceof Date)
-                    && !(source[propertyKey] instanceof Buffer)) {
+                    && !(source[propertyKey] instanceof Buffer)
+                    && !(Object.prototype.toString.call(source[propertyKey]) === "[object Date]")
+                ) {
                     if (!target[key]) Object.assign(target, { [key]: Object.create(Object.getPrototypeOf(source[propertyKey])) });
                     this.mergeDeep(target[key], source[propertyKey]);
                 } else {
