@@ -2399,7 +2399,9 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
                 this.buildOrder(order[key] as FindOptionsOrder<any>, metadata, alias, propertyPath);
 
             } else if (relation) {
-                const joinAlias = alias + "_" + relation.propertyName;
+                // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                // const joinAlias = alias + "_" + relation.propertyName;
+                const joinAlias = DriverUtils.buildColumnAlias(this.connection.driver, alias, relation.propertyName)
                 const existJoin = this.joins.find(join => join.alias === joinAlias);
                 if (!existJoin) {
                     this.joins.push({
@@ -2531,7 +2533,9 @@ export class SelectQueryBuilder<Entity> extends QueryBuilder<Entity> implements 
 
                     } else {
 
-                        const joinAlias = alias + "_" + relation.propertyName;
+                        // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                        // const joinAlias = alias + "_" + relation.propertyName;
+                        const joinAlias = DriverUtils.buildColumnAlias(this.connection.driver, alias, relation.propertyName)
                         const existJoin = this.joins.find(join => join.alias === joinAlias);
                         if (!existJoin) {
                             this.joins.push({

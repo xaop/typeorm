@@ -1,5 +1,6 @@
 import {Connection, ObjectLiteral, QueryRunner, SelectQueryBuilder} from "../";
 import {RelationMetadata} from "../metadata/RelationMetadata";
+import {DriverUtils} from "../driver/DriverUtils";
 
 /**
  * Wraps entities and creates getters/setters for their relations
@@ -71,14 +72,21 @@ export class RelationLoader {
             if (areAllNumbers) {
                 qb.where(`${joinAliasName}.${columns[0].propertyPath} IN (${values.join(", ")})`);
             } else {
-                qb.where(`${joinAliasName}.${columns[0].propertyPath} IN (:...${joinAliasName + "_" + columns[0].propertyName})`);
-                qb.setParameter(joinAliasName + "_" + columns[0].propertyName, values);
+
+                // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                // qb.where(`${joinAliasName}.${columns[0].propertyPath} IN (:...${joinAliasName + "_" + columns[0].propertyName})`);
+                // qb.setParameter(joinAliasName + "_" + columns[0].propertyName, values);
+                const parameterName = DriverUtils.buildColumnAlias(this.connection.driver, joinAliasName, columns[0].propertyName)
+                qb.where(`${joinAliasName}.${columns[0].propertyPath} IN (:...${parameterName})`);
+                qb.setParameter(parameterName, values);
             }
 
         } else {
             const condition = entities.map((entity, entityIndex) => {
                 return columns.map((column, columnIndex) => {
-                    const paramName = joinAliasName + "_entity_" + entityIndex + "_" + columnIndex;
+                    // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                    // const paramName = joinAliasName + "_entity_" + entityIndex + "_" + columnIndex;
+                    const paramName = DriverUtils.buildColumnAlias(this.connection.driver, joinAliasName, "entity_" + entityIndex + "_" + columnIndex)
                     qb.setParameter(paramName, column.getEntityValue(entity));
                     return joinAliasName + "." + column.propertyPath + " = :" + paramName;
                 }).join(" AND ");
@@ -116,14 +124,20 @@ export class RelationLoader {
             if (areAllNumbers) {
                 qb.where(`${aliasName}.${columns[0].propertyPath} IN (${values.join(", ")})`);
             } else {
-                qb.where(`${aliasName}.${columns[0].propertyPath} IN (:...${aliasName + "_" + columns[0].propertyName})`);
-                qb.setParameter(aliasName + "_" + columns[0].propertyName, values);
+                // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                // qb.where(`${aliasName}.${columns[0].propertyPath} IN (:...${aliasName + "_" + columns[0].propertyName})`);
+                // qb.setParameter(aliasName + "_" + columns[0].propertyName, values);
+                const parameterName = DriverUtils.buildColumnAlias(this.connection.driver, aliasName, columns[0].propertyName)
+                qb.where(`${aliasName}.${columns[0].propertyPath} IN (:...${parameterName})`);
+                qb.setParameter(parameterName, values);
             }
 
         } else {
             const condition = entities.map((entity, entityIndex) => {
                 return columns.map((column, columnIndex) => {
-                    const paramName = aliasName + "_entity_" + entityIndex + "_" + columnIndex;
+                    // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                    const paramName = DriverUtils.buildColumnAlias(this.connection.driver, aliasName, "entity_" + entityIndex + "_" + columnIndex)
+                    // const paramName = aliasName + "_entity_" + entityIndex + "_" + columnIndex;
                     qb.setParameter(paramName, column.referencedColumn!.getEntityValue(entity));
                     return aliasName + "." + column.propertyPath + " = :" + paramName;
                 }).join(" AND ");
