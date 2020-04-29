@@ -48,7 +48,9 @@ export class DriverUtils {
         const columnAliasName = alias + "_" + column;
 
         if (maxAliasLength && maxAliasLength > 0 && columnAliasName.length > maxAliasLength) {
-            return hash(columnAliasName, { length: maxAliasLength });
+            // Hack Julien:
+            // The first char needs to be a letter. OtherWise it gives an error for the parameters (e.g: :3451hsd)
+            return columnAliasName[0] + (maxAliasLength > 1 ? hash(columnAliasName, { length: maxAliasLength - 1 }) : '');
         }
 
         return columnAliasName;
