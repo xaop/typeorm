@@ -1,0 +1,1 @@
+{"version":3,"sources":["../browser/src/common/EntityTarget.ts"],"names":[],"mappings":"","file":"EntityTarget.js","sourcesContent":["import {ObjectType} from \"./ObjectType\";\nimport {EntitySchema} from \"..\";\n\n/**\n * Entity target.\n */\nexport type EntityTarget<Entity> = ObjectType<Entity> | EntitySchema<Entity> | string;\n"],"sourceRoot":".."}
