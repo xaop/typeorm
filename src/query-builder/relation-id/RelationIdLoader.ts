@@ -63,7 +63,9 @@ export class RelationIdLoader {
                 const parameters: ObjectLiteral = {};
                 const condition = rawEntities.map((rawEntity, index) => {
                     return joinColumns.map(joinColumn => {
-                        const parameterName = joinColumn.databaseName + index;
+                        // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                        // const parameterName = joinColumn.databaseName + index;
+                        const parameterName = DriverUtils.buildColumnAlias(this.connection.driver, joinColumn.databaseName + index)
                         parameters[parameterName] = rawEntity[DriverUtils.buildColumnAlias(this.connection.driver, relationIdAttr.parentAlias, joinColumn.referencedColumn!.databaseName)];
                         return tableAlias + "." + joinColumn.propertyPath + " = :" + parameterName;
                     }).join(" AND ");
@@ -141,7 +143,9 @@ export class RelationIdLoader {
                 const parameters: ObjectLiteral = {};
                 const joinColumnConditions = mappedColumns.map((mappedColumn, index) => {
                     return Object.keys(mappedColumn).map(key => {
-                        const parameterName = key + index;
+                        // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                        // const parameterName = key + index;
+                        const parameterName = DriverUtils.buildColumnAlias(this.connection.driver, key + index)
                         parameters[parameterName] = mappedColumn[key];
                         return junctionAlias + "." + key + " = :" + parameterName;
                     }).join(" AND ");

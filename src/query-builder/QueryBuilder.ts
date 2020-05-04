@@ -19,6 +19,7 @@ import {OracleDriver} from "../driver/oracle/OracleDriver";
 import {EntitySchema} from "../";
 import {FindOperator} from "../find-options/FindOperator";
 import {In} from "../find-options/operator/In";
+import {DriverUtils} from "../driver/DriverUtils";
 
 // todo: completely cover query builder with tests
 // todo: entityOrProperty can be target name. implement proper behaviour if it is.
@@ -639,7 +640,9 @@ export abstract class QueryBuilder<Entity> {
 
             if (driver instanceof OracleDriver) {
                 columnsExpression += " INTO " + columns.map(column => {
-                    const parameterName = "output_" + column.databaseName;
+                    // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                    // const parameterName = "output_" + column.databaseName;
+                    const parameterName = DriverUtils.buildColumnAlias(this.connection.driver, "output", column.databaseName)
                     this.expressionMap.nativeParameters[parameterName] = { type: driver.columnTypeToNativeParameter(column.type), dir: driver.oracle.BIND_OUT };
                     return this.connection.driver.createParameter(parameterName, Object.keys(this.expressionMap.nativeParameters).length);
                 }).join(", ");

@@ -40,12 +40,12 @@ export class DriverUtils {
      *
      * @param driver Current `Driver`.
      * @param alias Alias part.
-     * @param column Name of the column to be concatened to `alias`.
+     * @param column Name of the column to be concatened to `alias`. (Optional)
      *
      * @return An alias allowing to select/transform the target `column`.
      */
-    static buildColumnAlias({ maxAliasLength }: Driver, alias: string, column: string): string {
-        const columnAliasName = alias + "_" + column;
+    static buildColumnAlias({ maxAliasLength }: Driver, alias: string, column?: string): string {
+        const columnAliasName = (column && (column.length > 0)) ? alias + "_" + column : alias;
 
         if (maxAliasLength && maxAliasLength > 0 && columnAliasName.length > maxAliasLength) {
             // Hack Julien:

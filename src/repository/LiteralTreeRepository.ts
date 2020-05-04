@@ -4,6 +4,7 @@ import {AbstractSqliteDriver} from "../driver/sqlite-abstract/AbstractSqliteDriv
 import {createLiteralRepository} from "./LiteralRepository";
 import {ColumnMetadata} from "../metadata/ColumnMetadata";
 import {EntityTarget} from "../common/EntityTarget";
+import {DriverUtils} from "../driver/DriverUtils";
 
 /**
  * Repository is supposed to work with your entity objects. Find entities, insert, update, delete, etc.
@@ -131,7 +132,10 @@ export function createLiteralTreeRepository<Entity>({ manager, target, queryRunn
                     "joined." + this.getMetadata().nestedSetLeftColumn!.propertyPath + " AND joined." + this.getMetadata().nestedSetRightColumn!.propertyPath;
                 const parameters: ObjectLiteral = {};
                 const joinCondition = this.getMetadata().treeParentRelation!.joinColumns.map((joinColumn: ColumnMetadata) => {
-                    const parameterName = joinColumn.referencedColumn!.propertyPath.replace(".", "_");
+
+                    // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                    // const parameterName = joinColumn.referencedColumn!.propertyPath.replace(".", "_");
+                    const parameterName = DriverUtils.buildColumnAlias(this.manager.connection.driver, joinColumn.referencedColumn!.propertyPath.replace(".", "_"));
                     parameters[parameterName] = joinColumn.referencedColumn!.getEntityValue(entity);
                     return "joined." + joinColumn.referencedColumn!.propertyPath + " = :" + parameterName;
                 }).join(" AND ");
@@ -214,7 +218,9 @@ export function createLiteralTreeRepository<Entity>({ manager, target, queryRunn
                     alias + "." + this.getMetadata().nestedSetLeftColumn!.propertyPath + " AND " + alias + "." + this.getMetadata().nestedSetRightColumn!.propertyPath;
                 const parameters: ObjectLiteral = {};
                 const whereCondition = this.getMetadata().treeParentRelation!.joinColumns.map((joinColumn: ColumnMetadata) => {
-                    const parameterName = joinColumn.referencedColumn!.propertyPath.replace(".", "_");
+                    // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                    // const parameterName = joinColumn.referencedColumn!.propertyPath.replace(".", "_");
+                    const parameterName = DriverUtils.buildColumnAlias(this.manager.connection.driver, joinColumn.referencedColumn!.propertyPath.replace(".", "_"));
                     parameters[parameterName] = joinColumn.referencedColumn!.getEntityValue(entity);
                     return "joined." + joinColumn.referencedColumn!.propertyPath + " = :" + parameterName;
                 }).join(" AND ");
