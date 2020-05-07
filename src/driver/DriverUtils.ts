@@ -44,8 +44,13 @@ export class DriverUtils {
      *
      * @return An alias allowing to select/transform the target `column`.
      */
-    static buildColumnAlias({ maxAliasLength }: Driver, alias: string, column?: string): string {
+    static buildColumnAlias({ maxAliasLength }: Driver, alias: string, column?: string, options?: {extraNeededLength?: number}): string {
         const columnAliasName = (column && (column.length > 0)) ? alias + "_" + column : alias;
+
+        const extraNeededLength = (options || {}).extraNeededLength
+        if(maxAliasLength && extraNeededLength && (extraNeededLength > 0)) {
+            maxAliasLength = maxAliasLength - extraNeededLength
+        }
 
         if (maxAliasLength && maxAliasLength > 0 && columnAliasName.length > maxAliasLength) {
             // Hack Julien:
