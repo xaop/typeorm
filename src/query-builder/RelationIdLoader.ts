@@ -1,6 +1,7 @@
 import {Connection, ObjectLiteral, SelectQueryBuilder} from "../";
 import {ColumnMetadata} from "../metadata/ColumnMetadata";
 import {RelationMetadata} from "../metadata/RelationMetadata";
+import {DriverUtils} from "../driver/DriverUtils";
 
 /**
  * Loads relation ids for the given entities.
@@ -94,7 +95,11 @@ export class RelationIdLoader {
 
             const entityRelationIds = relationIds.filter(relationId => {
                 return inverseColumns.every(column => {
-                    return column.compareEntityValue(entity, relationId[column.entityMetadata.name + "_" + column.propertyAliasName]);
+                    // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                    // return column.compareEntityValue(entity, relationId[column.entityMetadata.name + "_" + column.propertyAliasName]);
+                    const columnName = DriverUtils.buildColumnAlias(this.connection.driver, column.entityMetadata.name + "_" + column.propertyAliasName)
+
+                    return column.compareEntityValue(entity, relationId[columnName]);
                 });
             });
             if (!entityRelationIds.length)
@@ -103,7 +108,11 @@ export class RelationIdLoader {
             relatedEntities.forEach(relatedEntity => {
                 entityRelationIds.forEach(relationId => {
                     const relatedEntityMatched = columns.every(column => {
-                        return column.compareEntityValue(relatedEntity, relationId[column.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.propertyPath.replace(".", "_")]);
+                        // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                        // return column.compareEntityValue(relatedEntity, relationId[column.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.propertyPath.replace(".", "_")]);
+                        const columnName = DriverUtils.buildColumnAlias(this.connection.driver, column.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.propertyPath.replace(".", "_"))
+
+                        return column.compareEntityValue(relatedEntity, relationId[columnName]);
                     });
                     if (relatedEntityMatched) {
                         if (isMany) {
@@ -174,11 +183,19 @@ export class RelationIdLoader {
 
         // select all columns from junction table
         columns.forEach(column => {
-            const columnName = column.referencedColumn!.entityMetadata.name + "_" + column.referencedColumn!.propertyPath.replace(".", "_");
+            let columnName = column.referencedColumn!.entityMetadata.name + "_" + column.referencedColumn!.propertyPath.replace(".", "_");
+
+            // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+            columnName = DriverUtils.buildColumnAlias(this.connection.driver, columnName)
+
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
         inverseColumns.forEach(column => {
-            const columnName = column.referencedColumn!.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn!.propertyPath.replace(".", "_");
+            let columnName = column.referencedColumn!.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn!.propertyPath.replace(".", "_");
+
+            // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+            columnName = DriverUtils.buildColumnAlias(this.connection.driver, columnName)
+
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
 
@@ -303,11 +320,19 @@ export class RelationIdLoader {
         // select all columns we need
         const qb = this.connection.createQueryBuilder();
         relation.entityMetadata.primaryColumns.forEach(primaryColumn => {
-            const columnName = primaryColumn.entityMetadata.name + "_" + primaryColumn.propertyPath.replace(".", "_");
+            let columnName = primaryColumn.entityMetadata.name + "_" + primaryColumn.propertyPath.replace(".", "_");
+
+            // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+            columnName = DriverUtils.buildColumnAlias(this.connection.driver, columnName)
+
             qb.addSelect(mainAlias + "." + primaryColumn.propertyPath, columnName);
         });
         relation.joinColumns.forEach(column => {
-            const columnName = column.referencedColumn!.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn!.propertyPath.replace(".", "_");
+            let columnName = column.referencedColumn!.entityMetadata.name + "_" + relation.propertyPath.replace(".", "_") + "_" + column.referencedColumn!.propertyPath.replace(".", "_");
+
+            // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+            columnName = DriverUtils.buildColumnAlias(this.connection.driver, columnName)
+
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
 
@@ -371,11 +396,19 @@ export class RelationIdLoader {
         // select all columns we need
         const qb = this.connection.createQueryBuilder();
         relation.entityMetadata.primaryColumns.forEach(primaryColumn => {
-            const columnName = primaryColumn.entityMetadata.name + "_" + relation.inverseRelation!.propertyPath.replace(".", "_") + "_" + primaryColumn.propertyPath.replace(".", "_");
+            let columnName = primaryColumn.entityMetadata.name + "_" + relation.inverseRelation!.propertyPath.replace(".", "_") + "_" + primaryColumn.propertyPath.replace(".", "_");
+
+            // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+            columnName = DriverUtils.buildColumnAlias(this.connection.driver, columnName)
+
             qb.addSelect(mainAlias + "." + primaryColumn.propertyPath, columnName);
         });
         relation.joinColumns.forEach(column => {
-            const columnName = column.referencedColumn!.entityMetadata.name + "_" + column.referencedColumn!.propertyPath.replace(".", "_");
+            let columnName = column.referencedColumn!.entityMetadata.name + "_" + column.referencedColumn!.propertyPath.replace(".", "_");
+
+            // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+            columnName = DriverUtils.buildColumnAlias(this.connection.driver, columnName)
+
             qb.addSelect(mainAlias + "." + column.propertyPath, columnName);
         });
 
