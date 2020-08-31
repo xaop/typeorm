@@ -1,11 +1,11 @@
 import { Driver } from "./Driver";
 import { hash } from "../util/StringUtils";
+import { OracleDriver } from "./oracle/OracleDriver";
 
-    /**
+/**
  * Common driver utility functions.
  */
 export class DriverUtils {
-
     // -------------------------------------------------------------------------
     // Public Static Methods
     // -------------------------------------------------------------------------
@@ -14,7 +14,10 @@ export class DriverUtils {
      * Normalizes and builds a new driver options.
      * Extracts settings from connection url and sets to a new options object.
      */
-    static buildDriverOptions(options: any, buildOptions?: { useSid: boolean }): any {
+    static buildDriverOptions(
+        options: any,
+        buildOptions?: { useSid: boolean }
+    ): any {
         if (options.url) {
             const parsedUrl = this.parseConnectionUrl(options.url);
             let urlDriverOptions: any = {
@@ -44,21 +47,56 @@ export class DriverUtils {
      *
      * @return An alias allowing to select/transform the target `column`.
      */
-    static buildColumnAlias({ maxAliasLength }: Driver, alias: string, column?: string, options?: {extraNeededLength?: number}): string {
-        const columnAliasName = (column && (column.length > 0)) ? alias + "_" + column : alias;
+    static buildColumnAlias(
+        { maxAliasLength }: Driver,
+        alias: string,
+        column?: string,
+        options?: { extraNeededLength?: number }
+    ): string {
+        const columnAliasName =
+            column && column.length > 0 ? alias + "_" + column : alias;
 
-        const extraNeededLength = (options || {}).extraNeededLength
-        if(maxAliasLength && extraNeededLength && (extraNeededLength > 0)) {
-            maxAliasLength = maxAliasLength - extraNeededLength
+        const extraNeededLength = (options || {}).extraNeededLength;
+        if (maxAliasLength && extraNeededLength && extraNeededLength > 0) {
+            maxAliasLength = maxAliasLength - extraNeededLength;
         }
 
-        if (maxAliasLength && maxAliasLength > 0 && columnAliasName.length > maxAliasLength) {
+        if (
+            maxAliasLength &&
+            maxAliasLength > 0 &&
+            columnAliasName.length > maxAliasLength
+        ) {
             // Hack Julien:
             // The first char needs to be a letter. OtherWise it gives an error for the parameters (e.g: :3451hsd)
-            return columnAliasName[0] + (maxAliasLength > 1 ? hash(columnAliasName, { length: maxAliasLength - 1 }) : '');
+            return (
+                columnAliasName[0] +
+                (maxAliasLength > 1
+                    ? hash(columnAliasName, { length: maxAliasLength - 1 })
+                    : "")
+            );
         }
 
         return columnAliasName;
+    }
+
+    /**
+     * Build a parameter and a list of values for a 'IN' clause for Oracle.
+     * This will allow more than 1000 items in the list of values for the IN clause.
+     */
+    static buildParamAndValuesForInClause(
+        driver: Driver,
+        origParam: string,
+        origValues: any[]
+    ): { param: string; values: any[] } {
+        let param: string = origParam;
+        let values = origValues;
+
+        if (driver instanceof OracleDriver && values.length > 1000) {
+            param = `(1, ${param})`;
+            values = values.map(v => `(1, ${v})`);
+        }
+
+        return { param, values };
     }
 
     // -------------------------------------------------------------------------
@@ -73,8 +111,10 @@ export class DriverUtils {
         const firstSlashes = url.indexOf("//");
         const preBase = url.substr(firstSlashes + 2);
         const secondSlash = preBase.indexOf("/");
-        const base = (secondSlash !== -1) ? preBase.substr(0, secondSlash) : preBase;
-        const afterBase = (secondSlash !== -1) ? preBase.substr(secondSlash + 1) : undefined;
+        const base =
+            secondSlash !== -1 ? preBase.substr(0, secondSlash) : preBase;
+        const afterBase =
+            secondSlash !== -1 ? preBase.substr(secondSlash + 1) : undefined;
 
         const lastAtSign = base.lastIndexOf("@");
         const usernameAndPassword = base.substr(0, lastAtSign);

@@ -1,25 +1,25 @@
-import {ObjectLiteral} from "../common/ObjectLiteral";
-import {QueryRunner} from "../query-runner/QueryRunner";
-import {Connection} from "../connection/Connection";
-import {QueryExpressionMap} from "./QueryExpressionMap";
-import {SelectQueryBuilder} from "./SelectQueryBuilder";
-import {UpdateQueryBuilder} from "./UpdateQueryBuilder";
-import {DeleteQueryBuilder} from "./DeleteQueryBuilder";
-import {InsertQueryBuilder} from "./InsertQueryBuilder";
-import {RelationQueryBuilder} from "./RelationQueryBuilder";
-import {ObjectType} from "../common/ObjectType";
-import {Alias} from "./Alias";
-import {Brackets} from "./Brackets";
-import {QueryDeepPartialEntity} from "./QueryPartialEntity";
-import {EntityMetadata} from "../metadata/EntityMetadata";
-import {ColumnMetadata} from "../metadata/ColumnMetadata";
-import {SqljsDriver} from "../driver/sqljs/SqljsDriver";
-import {SqlServerDriver} from "../driver/sqlserver/SqlServerDriver";
-import {OracleDriver} from "../driver/oracle/OracleDriver";
-import {EntitySchema} from "../";
-import {FindOperator} from "../find-options/FindOperator";
-import {In} from "../find-options/operator/In";
-import {DriverUtils} from "../driver/DriverUtils";
+import { ObjectLiteral } from "../common/ObjectLiteral";
+import { QueryRunner } from "../query-runner/QueryRunner";
+import { Connection } from "../connection/Connection";
+import { QueryExpressionMap } from "./QueryExpressionMap";
+import { SelectQueryBuilder } from "./SelectQueryBuilder";
+import { UpdateQueryBuilder } from "./UpdateQueryBuilder";
+import { DeleteQueryBuilder } from "./DeleteQueryBuilder";
+import { InsertQueryBuilder } from "./InsertQueryBuilder";
+import { RelationQueryBuilder } from "./RelationQueryBuilder";
+import { ObjectType } from "../common/ObjectType";
+import { Alias } from "./Alias";
+import { Brackets } from "./Brackets";
+import { QueryDeepPartialEntity } from "./QueryPartialEntity";
+import { EntityMetadata } from "../metadata/EntityMetadata";
+import { ColumnMetadata } from "../metadata/ColumnMetadata";
+import { SqljsDriver } from "../driver/sqljs/SqljsDriver";
+import { SqlServerDriver } from "../driver/sqlserver/SqlServerDriver";
+import { OracleDriver } from "../driver/oracle/OracleDriver";
+import { EntitySchema } from "../";
+import { FindOperator } from "../find-options/FindOperator";
+import { In } from "../find-options/operator/In";
+import { DriverUtils } from "../driver/DriverUtils";
 
 // todo: completely cover query builder with tests
 // todo: entityOrProperty can be target name. implement proper behaviour if it is.
@@ -40,7 +40,6 @@ import {DriverUtils} from "../driver/DriverUtils";
  * Allows to build complex sql queries in a fashion way and execute those queries.
  */
 export abstract class QueryBuilder<Entity> {
-
     // -------------------------------------------------------------------------
     // Public Properties
     // -------------------------------------------------------------------------
@@ -81,12 +80,14 @@ export abstract class QueryBuilder<Entity> {
     /**
      * QueryBuilder can be initialized from given Connection and QueryRunner objects or from given other QueryBuilder.
      */
-    constructor(connectionOrQueryBuilder: Connection|QueryBuilder<any>, queryRunner?: QueryRunner) {
+    constructor(
+        connectionOrQueryBuilder: Connection | QueryBuilder<any>,
+        queryRunner?: QueryRunner
+    ) {
         if (connectionOrQueryBuilder instanceof QueryBuilder) {
             this.connection = connectionOrQueryBuilder.connection;
             this.queryRunner = connectionOrQueryBuilder.queryRunner;
             this.expressionMap = connectionOrQueryBuilder.expressionMap.clone();
-
         } else {
             this.connection = connectionOrQueryBuilder;
             this.queryRunner = queryRunner;
@@ -131,7 +132,10 @@ export abstract class QueryBuilder<Entity> {
      * Creates SELECT query and selects given data.
      * Replaces all previous selections if they exist.
      */
-    select(selection: string, selectionAliasName?: string): SelectQueryBuilder<Entity>;
+    select(
+        selection: string,
+        selectionAliasName?: string
+    ): SelectQueryBuilder<Entity>;
 
     /**
      * Creates SELECT query and selects given data.
@@ -143,18 +147,25 @@ export abstract class QueryBuilder<Entity> {
      * Creates SELECT query and selects given data.
      * Replaces all previous selections if they exist.
      */
-    select(selection?: string|string[], selectionAliasName?: string): SelectQueryBuilder<Entity> {
+    select(
+        selection?: string | string[],
+        selectionAliasName?: string
+    ): SelectQueryBuilder<Entity> {
         this.expressionMap.queryType = "select";
         if (Array.isArray(selection)) {
-            this.expressionMap.selects = selection.map(selection => ({ selection: selection }));
+            this.expressionMap.selects = selection.map(selection => ({
+                selection: selection
+            }));
         } else if (selection) {
-            this.expressionMap.selects = [{ selection: selection, aliasName: selectionAliasName }];
+            this.expressionMap.selects = [
+                { selection: selection, aliasName: selectionAliasName }
+            ];
         }
 
         // loading it dynamically because of circular issue
-        const SelectQueryBuilderCls = require("./SelectQueryBuilder").SelectQueryBuilder;
-        if (this instanceof SelectQueryBuilderCls)
-            return this as any;
+        const SelectQueryBuilderCls = require("./SelectQueryBuilder")
+            .SelectQueryBuilder;
+        if (this instanceof SelectQueryBuilderCls) return this as any;
 
         return new SelectQueryBuilderCls(this);
     }
@@ -166,9 +177,9 @@ export abstract class QueryBuilder<Entity> {
         this.expressionMap.queryType = "insert";
 
         // loading it dynamically because of circular issue
-        const InsertQueryBuilderCls = require("./InsertQueryBuilder").InsertQueryBuilder;
-        if (this instanceof InsertQueryBuilderCls)
-            return this as any;
+        const InsertQueryBuilderCls = require("./InsertQueryBuilder")
+            .InsertQueryBuilder;
+        if (this instanceof InsertQueryBuilderCls) return this as any;
 
         return new InsertQueryBuilderCls(this);
     }
@@ -181,36 +192,65 @@ export abstract class QueryBuilder<Entity> {
     /**
      * Creates UPDATE query and applies given update values.
      */
-    update(updateSet: QueryDeepPartialEntity<Entity>): UpdateQueryBuilder<Entity>;
+    update(
+        updateSet: QueryDeepPartialEntity<Entity>
+    ): UpdateQueryBuilder<Entity>;
 
     /**
      * Creates UPDATE query for the given entity and applies given update values.
      */
-    update<T>(entity: ObjectType<T>, updateSet?: QueryDeepPartialEntity<T>): UpdateQueryBuilder<T>;
+    update<T>(
+        entity: ObjectType<T>,
+        updateSet?: QueryDeepPartialEntity<T>
+    ): UpdateQueryBuilder<T>;
 
     /**
      * Creates UPDATE query for the given entity and applies given update values.
      */
-    update<T>(entity: EntitySchema<T>, updateSet?: QueryDeepPartialEntity<T>): UpdateQueryBuilder<T>;
+    update<T>(
+        entity: EntitySchema<T>,
+        updateSet?: QueryDeepPartialEntity<T>
+    ): UpdateQueryBuilder<T>;
 
     /**
      * Creates UPDATE query for the given entity and applies given update values.
      */
-    update(entity: Function|EntitySchema<Entity>|string, updateSet?: QueryDeepPartialEntity<Entity>): UpdateQueryBuilder<Entity>;
+    update(
+        entity: Function | EntitySchema<Entity> | string,
+        updateSet?: QueryDeepPartialEntity<Entity>
+    ): UpdateQueryBuilder<Entity>;
 
     /**
      * Creates UPDATE query for the given table name and applies given update values.
      */
-    update(tableName: string, updateSet?: QueryDeepPartialEntity<Entity>): UpdateQueryBuilder<Entity>;
+    update(
+        tableName: string,
+        updateSet?: QueryDeepPartialEntity<Entity>
+    ): UpdateQueryBuilder<Entity>;
 
     /**
      * Creates UPDATE query and applies given update values.
      */
-    update(entityOrTableNameUpdateSet?: string|Function|EntitySchema<any>|ObjectLiteral, maybeUpdateSet?: ObjectLiteral): UpdateQueryBuilder<any> {
-        const updateSet = maybeUpdateSet ? maybeUpdateSet : entityOrTableNameUpdateSet as ObjectLiteral|undefined;
-        entityOrTableNameUpdateSet = entityOrTableNameUpdateSet instanceof EntitySchema ? entityOrTableNameUpdateSet.options.name : entityOrTableNameUpdateSet;
+    update(
+        entityOrTableNameUpdateSet?:
+            | string
+            | Function
+            | EntitySchema<any>
+            | ObjectLiteral,
+        maybeUpdateSet?: ObjectLiteral
+    ): UpdateQueryBuilder<any> {
+        const updateSet = maybeUpdateSet
+            ? maybeUpdateSet
+            : (entityOrTableNameUpdateSet as ObjectLiteral | undefined);
+        entityOrTableNameUpdateSet =
+            entityOrTableNameUpdateSet instanceof EntitySchema
+                ? entityOrTableNameUpdateSet.options.name
+                : entityOrTableNameUpdateSet;
 
-        if (entityOrTableNameUpdateSet instanceof Function || typeof entityOrTableNameUpdateSet === "string") {
+        if (
+            entityOrTableNameUpdateSet instanceof Function ||
+            typeof entityOrTableNameUpdateSet === "string"
+        ) {
             const mainAlias = this.createFromAlias(entityOrTableNameUpdateSet);
             this.expressionMap.setMainAlias(mainAlias);
         }
@@ -219,9 +259,9 @@ export abstract class QueryBuilder<Entity> {
         this.expressionMap.valuesSet = updateSet;
 
         // loading it dynamically because of circular issue
-        const UpdateQueryBuilderCls = require("./UpdateQueryBuilder").UpdateQueryBuilder;
-        if (this instanceof UpdateQueryBuilderCls)
-            return this as any;
+        const UpdateQueryBuilderCls = require("./UpdateQueryBuilder")
+            .UpdateQueryBuilder;
+        if (this instanceof UpdateQueryBuilderCls) return this as any;
 
         return new UpdateQueryBuilderCls(this);
     }
@@ -233,9 +273,9 @@ export abstract class QueryBuilder<Entity> {
         this.expressionMap.queryType = "delete";
 
         // loading it dynamically because of circular issue
-        const DeleteQueryBuilderCls = require("./DeleteQueryBuilder").DeleteQueryBuilder;
-        if (this instanceof DeleteQueryBuilderCls)
-            return this as any;
+        const DeleteQueryBuilderCls = require("./DeleteQueryBuilder")
+            .DeleteQueryBuilder;
+        if (this instanceof DeleteQueryBuilderCls) return this as any;
 
         return new DeleteQueryBuilderCls(this);
     }
@@ -248,14 +288,24 @@ export abstract class QueryBuilder<Entity> {
     /**
      * Sets entity's relation with which this query builder gonna work.
      */
-    relation<T>(entityTarget: ObjectType<T>|string, propertyPath: string): RelationQueryBuilder<T>;
+    relation<T>(
+        entityTarget: ObjectType<T> | string,
+        propertyPath: string
+    ): RelationQueryBuilder<T>;
 
     /**
      * Sets entity's relation with which this query builder gonna work.
      */
-    relation(entityTargetOrPropertyPath: Function|string, maybePropertyPath?: string): RelationQueryBuilder<Entity> {
-        const entityTarget = arguments.length === 2 ? entityTargetOrPropertyPath : undefined;
-        const propertyPath = arguments.length === 2 ? maybePropertyPath as string : entityTargetOrPropertyPath as string;
+    relation(
+        entityTargetOrPropertyPath: Function | string,
+        maybePropertyPath?: string
+    ): RelationQueryBuilder<Entity> {
+        const entityTarget =
+            arguments.length === 2 ? entityTargetOrPropertyPath : undefined;
+        const propertyPath =
+            arguments.length === 2
+                ? (maybePropertyPath as string)
+                : (entityTargetOrPropertyPath as string);
 
         this.expressionMap.queryType = "relation";
         this.expressionMap.relationPropertyPath = propertyPath;
@@ -266,13 +316,12 @@ export abstract class QueryBuilder<Entity> {
         }
 
         // loading it dynamically because of circular issue
-        const RelationQueryBuilderCls = require("./RelationQueryBuilder").RelationQueryBuilder;
-        if (this instanceof RelationQueryBuilderCls)
-            return this as any;
+        const RelationQueryBuilderCls = require("./RelationQueryBuilder")
+            .RelationQueryBuilder;
+        if (this instanceof RelationQueryBuilderCls) return this as any;
 
         return new RelationQueryBuilderCls(this);
     }
-
 
     /**
      * Checks if given relation exists in the entity.
@@ -280,7 +329,7 @@ export abstract class QueryBuilder<Entity> {
      *
      * todo: move this method to manager? or create a shortcut?
      */
-    hasRelation<T>(target: ObjectType<T>|string, relation: string): boolean;
+    hasRelation<T>(target: ObjectType<T> | string, relation: string): boolean;
 
     /**
      * Checks if given relations exist in the entity.
@@ -288,7 +337,7 @@ export abstract class QueryBuilder<Entity> {
      *
      * todo: move this method to manager? or create a shortcut?
      */
-    hasRelation<T>(target: ObjectType<T>|string, relation: string[]): boolean;
+    hasRelation<T>(target: ObjectType<T> | string, relation: string[]): boolean;
 
     /**
      * Checks if given relation or relations exist in the entity.
@@ -296,7 +345,10 @@ export abstract class QueryBuilder<Entity> {
      *
      * todo: move this method to manager? or create a shortcut?
      */
-    hasRelation<T>(target: ObjectType<T>|string, relation: string|string[]): boolean {
+    hasRelation<T>(
+        target: ObjectType<T> | string,
+        relation: string | string[]
+    ): boolean {
         const entityMetadata = this.connection.getMetadata(target);
         const relations = Array.isArray(relation) ? relation : [relation];
         return relations.every(relation => {
@@ -316,11 +368,12 @@ export abstract class QueryBuilder<Entity> {
      * Adds all parameters from the given object.
      */
     setParameters(parameters: ObjectLiteral): this {
-
         // remove function parameters
         Object.keys(parameters).forEach(key => {
             if (parameters[key] instanceof Function) {
-                throw new Error(`Function parameter isn't supported in the parameters. Please check "${key}" parameter.`);
+                throw new Error(
+                    `Function parameter isn't supported in the parameters. Please check "${key}" parameter.`
+                );
             }
         });
 
@@ -328,7 +381,9 @@ export abstract class QueryBuilder<Entity> {
         if (this.expressionMap.parentQueryBuilder)
             this.expressionMap.parentQueryBuilder.setParameters(parameters);
 
-        Object.keys(parameters).forEach(key => this.setParameter(key, parameters[key]));
+        Object.keys(parameters).forEach(key =>
+            this.setParameter(key, parameters[key])
+        );
         return this;
     }
 
@@ -336,10 +391,11 @@ export abstract class QueryBuilder<Entity> {
      * Adds native parameters from the given object.
      */
     setNativeParameters(parameters: ObjectLiteral): this {
-
         // set parent query builder parameters as well in sub-query mode
         if (this.expressionMap.parentQueryBuilder)
-            this.expressionMap.parentQueryBuilder.setNativeParameters(parameters);
+            this.expressionMap.parentQueryBuilder.setNativeParameters(
+                parameters
+            );
 
         Object.keys(parameters).forEach(key => {
             this.expressionMap.nativeParameters[key] = parameters[key];
@@ -351,10 +407,16 @@ export abstract class QueryBuilder<Entity> {
      * Gets all parameters.
      */
     getParameters(): ObjectLiteral {
-        const parameters: ObjectLiteral = Object.assign({}, this.expressionMap.parameters);
+        const parameters: ObjectLiteral = Object.assign(
+            {},
+            this.expressionMap.parameters
+        );
 
         // add discriminator column parameter if it exist
-        if (this.expressionMap.mainAlias && this.expressionMap.mainAlias.hasMetadata) {
+        if (
+            this.expressionMap.mainAlias &&
+            this.expressionMap.mainAlias.hasMetadata
+        ) {
             const metadata = this.expressionMap.mainAlias!.metadata;
             if (metadata.discriminatorColumn && metadata.parentEntityMetadata) {
                 const values = metadata.childEntityMetadatas
@@ -371,7 +433,8 @@ export abstract class QueryBuilder<Entity> {
     /**
      * Prints sql to stdout using console.log.
      */
-    printSql(): this { // TODO rename to logSql()
+    printSql(): this {
+        // TODO rename to logSql()
         const [query, parameters] = this.getQueryAndParameters();
         this.connection.logger.logQuery(query, parameters);
         return this;
@@ -392,7 +455,11 @@ export abstract class QueryBuilder<Entity> {
         // this execution order is important because getQuery method generates this.expressionMap.nativeParameters values
         const query = this.getQuery();
         const parameters = this.getParameters();
-        return this.connection.driver.escapeQueryWithParameters(query, parameters, this.expressionMap.nativeParameters);
+        return this.connection.driver.escapeQueryWithParameters(
+            query,
+            parameters,
+            this.expressionMap.nativeParameters
+        );
     }
 
     /**
@@ -402,10 +469,10 @@ export abstract class QueryBuilder<Entity> {
         const [sql, parameters] = this.getQueryAndParameters();
         const queryRunner = this.obtainQueryRunner();
         try {
-            return await queryRunner.query(sql, parameters);  // await is needed here because we are using finally
-
+            return await queryRunner.query(sql, parameters); // await is needed here because we are using finally
         } finally {
-            if (queryRunner !== this.queryRunner) { // means we created our own query runner
+            if (queryRunner !== this.queryRunner) {
+                // means we created our own query runner
                 await queryRunner.release();
             }
             if (this.connection.driver instanceof SqljsDriver) {
@@ -444,8 +511,7 @@ export abstract class QueryBuilder<Entity> {
      * Escapes table name, column name or alias name using current database's escaping character.
      */
     escape(name: string): string {
-        if (!this.expressionMap.disableEscaping)
-            return name;
+        if (!this.expressionMap.disableEscaping) return name;
         return this.connection.driver.escape(name);
     }
 
@@ -492,13 +558,14 @@ export abstract class QueryBuilder<Entity> {
      * schema name, otherwise returns escaped table name.
      */
     protected getTableName(tablePath: string): string {
-        return tablePath.split(".")
+        return tablePath
+            .split(".")
             .map(i => {
                 // this condition need because in SQL Server driver when custom database name was specified and schema name was not, we got `dbName..tableName` string, and doesn't need to escape middle empty string
-                if (i === "")
-                    return i;
+                if (i === "") return i;
                 return this.escape(i);
-            }).join(".");
+            })
+            .join(".");
     }
 
     /**
@@ -506,7 +573,9 @@ export abstract class QueryBuilder<Entity> {
      */
     protected getMainTableName(): string {
         if (!this.expressionMap.mainAlias)
-            throw new Error(`Entity where values should be inserted is not specified. Call "qb.into(entity)" method to specify it.`);
+            throw new Error(
+                `Entity where values should be inserted is not specified. Call "qb.into(entity)" method to specify it.`
+            );
 
         if (this.expressionMap.mainAlias.hasMetadata)
             return this.expressionMap.mainAlias.metadata.tablePath;
@@ -518,8 +587,13 @@ export abstract class QueryBuilder<Entity> {
      * Specifies FROM which entity's table select/update/delete will be executed.
      * Also sets a main string alias of the selection data.
      */
-    protected createFromAlias(entityTarget: Function|string|((qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any>), aliasName?: string): Alias {
-
+    protected createFromAlias(
+        entityTarget:
+            | Function
+            | string
+            | ((qb: SelectQueryBuilder<any>) => SelectQueryBuilder<any>),
+        aliasName?: string
+    ): Alias {
         // if table has a metadata then find it to properly escape its properties
         // const metadata = this.connection.entityMetadatas.find(metadata => metadata.tableName === tableName);
         if (this.connection.hasMetadata(entityTarget)) {
@@ -531,23 +605,27 @@ export abstract class QueryBuilder<Entity> {
                 metadata: this.connection.getMetadata(entityTarget),
                 tablePath: metadata.tablePath
             });
-
         } else {
             let subQuery: string = "";
             if (entityTarget instanceof Function) {
-                const subQueryBuilder: SelectQueryBuilder<any> = (entityTarget as any)(((this as any) as SelectQueryBuilder<any>).subQuery());
+                const subQueryBuilder: SelectQueryBuilder<any> = (entityTarget as any)(
+                    ((this as any) as SelectQueryBuilder<any>).subQuery()
+                );
                 this.setParameters(subQueryBuilder.getParameters());
                 subQuery = subQueryBuilder.getQuery();
-
             } else {
                 subQuery = entityTarget;
             }
-            const isSubQuery = entityTarget instanceof Function || entityTarget.substr(0, 1) === "(" && entityTarget.substr(-1) === ")";
+            const isSubQuery =
+                entityTarget instanceof Function ||
+                (entityTarget.substr(0, 1) === "(" &&
+                    entityTarget.substr(-1) === ")");
             return this.expressionMap.createAlias({
                 type: "from",
                 name: aliasName,
-                tablePath: isSubQuery === false ? entityTarget as string : undefined,
-                subQuery: isSubQuery === true ? subQuery : undefined,
+                tablePath:
+                    isSubQuery === false ? (entityTarget as string) : undefined,
+                subQuery: isSubQuery === true ? subQuery : undefined
             });
         }
     }
@@ -558,22 +636,73 @@ export abstract class QueryBuilder<Entity> {
     protected replacePropertyNames(statement: string) {
         this.expressionMap.aliases.forEach(alias => {
             if (!alias.hasMetadata) return;
-            const replaceAliasNamePrefix = this.expressionMap.aliasNamePrefixingEnabled ? alias.name + "\\." : "";
-            const replacementAliasNamePrefix = this.expressionMap.aliasNamePrefixingEnabled ? this.escape(alias.name) + "." : "";
+            const replaceAliasNamePrefix = this.expressionMap
+                .aliasNamePrefixingEnabled
+                ? alias.name + "\\."
+                : "";
+            const replacementAliasNamePrefix = this.expressionMap
+                .aliasNamePrefixingEnabled
+                ? this.escape(alias.name) + "."
+                : "";
             alias.metadata.columns.forEach(column => {
-                const expression = "([ =\(]|^.{0})" + replaceAliasNamePrefix + column.propertyPath + "([ =\)\,]|.{0}$)";
-                statement = statement.replace(new RegExp(expression, "gm"), "$1" + replacementAliasNamePrefix + this.escape(column.databaseName) + "$2");
-                const expression2 = "([ =\(]|^.{0})" + replaceAliasNamePrefix + column.propertyName + "([ =\)\,]|.{0}$)";
-                statement = statement.replace(new RegExp(expression2, "gm"), "$1" + replacementAliasNamePrefix + this.escape(column.databaseName) + "$2");
+                const expression =
+                    "([ =(]|^.{0})" +
+                    replaceAliasNamePrefix +
+                    column.propertyPath +
+                    "([ =),]|.{0}$)";
+                statement = statement.replace(
+                    new RegExp(expression, "gm"),
+                    "$1" +
+                        replacementAliasNamePrefix +
+                        this.escape(column.databaseName) +
+                        "$2"
+                );
+                const expression2 =
+                    "([ =(]|^.{0})" +
+                    replaceAliasNamePrefix +
+                    column.propertyName +
+                    "([ =),]|.{0}$)";
+                statement = statement.replace(
+                    new RegExp(expression2, "gm"),
+                    "$1" +
+                        replacementAliasNamePrefix +
+                        this.escape(column.databaseName) +
+                        "$2"
+                );
             });
             alias.metadata.relations.forEach(relation => {
-                [...relation.joinColumns, ...relation.inverseJoinColumns].forEach(joinColumn => {
-                    const expression = "([ =\(]|^.{0})" + replaceAliasNamePrefix + relation.propertyPath + "\\." + joinColumn.referencedColumn!.propertyPath + "([ =\)\,]|.{0}$)";
-                    statement = statement.replace(new RegExp(expression, "gm"), "$1" + replacementAliasNamePrefix + this.escape(joinColumn.databaseName) + "$2"); // todo: fix relation.joinColumns[0], what if multiple columns
+                [
+                    ...relation.joinColumns,
+                    ...relation.inverseJoinColumns
+                ].forEach(joinColumn => {
+                    const expression =
+                        "([ =(]|^.{0})" +
+                        replaceAliasNamePrefix +
+                        relation.propertyPath +
+                        "\\." +
+                        joinColumn.referencedColumn!.propertyPath +
+                        "([ =),]|.{0}$)";
+                    statement = statement.replace(
+                        new RegExp(expression, "gm"),
+                        "$1" +
+                            replacementAliasNamePrefix +
+                            this.escape(joinColumn.databaseName) +
+                            "$2"
+                    ); // todo: fix relation.joinColumns[0], what if multiple columns
                 });
                 if (relation.joinColumns.length > 0) {
-                    const expression = "([ =\(]|^.{0})" + replaceAliasNamePrefix + relation.propertyPath + "([ =\)\,]|.{0}$)";
-                    statement = statement.replace(new RegExp(expression, "gm"), "$1" + replacementAliasNamePrefix + this.escape(relation.joinColumns[0].databaseName) + "$2"); // todo: fix relation.joinColumns[0], what if multiple columns
+                    const expression =
+                        "([ =(]|^.{0})" +
+                        replaceAliasNamePrefix +
+                        relation.propertyPath +
+                        "([ =),]|.{0}$)";
+                    statement = statement.replace(
+                        new RegExp(expression, "gm"),
+                        "$1" +
+                            replacementAliasNamePrefix +
+                            this.escape(relation.joinColumns[0].databaseName) +
+                            "$2"
+                    ); // todo: fix relation.joinColumns[0], what if multiple columns
                 }
             });
         });
@@ -590,19 +719,40 @@ export abstract class QueryBuilder<Entity> {
             const metadata = this.expressionMap.mainAlias!.metadata;
             if (metadata.discriminatorColumn && metadata.parentEntityMetadata) {
                 const column = this.expressionMap.aliasNamePrefixingEnabled
-                    ? this.expressionMap.mainAlias!.name + "." + metadata.discriminatorColumn.databaseName
+                    ? this.expressionMap.mainAlias!.name +
+                      "." +
+                      metadata.discriminatorColumn.databaseName
                     : metadata.discriminatorColumn.databaseName;
 
-                const condition = `${this.replacePropertyNames(column)} IN (:...discriminatorColumnValues)`;
-                return ` WHERE ${ conditions.length ? "(" + conditions + ") AND" : "" } ${condition}`;
+                console.log("with a discriminator");
+
+                const condition = `${this.replacePropertyNames(
+                    column
+                )} IN (:...discriminatorColumnValues)`;
+                return ` WHERE ${
+                    conditions.length ? "(" + conditions + ") AND" : ""
+                } ${condition}`;
             }
         }
 
-        if (!conditions.length) // TODO copy in to discriminator condition
-            return this.expressionMap.extraAppendedAndWhereCondition ? " WHERE " + this.replacePropertyNames(this.expressionMap.extraAppendedAndWhereCondition) : "";
+        if (!conditions.length)
+            // TODO copy in to discriminator condition
+            return this.expressionMap.extraAppendedAndWhereCondition
+                ? " WHERE " +
+                      this.replacePropertyNames(
+                          this.expressionMap.extraAppendedAndWhereCondition
+                      )
+                : "";
 
         if (this.expressionMap.extraAppendedAndWhereCondition)
-            return " WHERE (" + conditions + ") AND " + this.replacePropertyNames(this.expressionMap.extraAppendedAndWhereCondition);
+            return (
+                " WHERE (" +
+                conditions +
+                ") AND " +
+                this.replacePropertyNames(
+                    this.expressionMap.extraAppendedAndWhereCondition
+                )
+            );
 
         return " WHERE " + conditions;
     }
@@ -616,39 +766,70 @@ export abstract class QueryBuilder<Entity> {
 
         // also add columns we must auto-return to perform entity updation
         // if user gave his own returning
-        if (typeof this.expressionMap.returning !== "string" &&
+        if (
+            typeof this.expressionMap.returning !== "string" &&
             this.expressionMap.extraReturningColumns.length > 0 &&
-            driver.isReturningSqlSupported()) {
-            columns.push(...this.expressionMap.extraReturningColumns.filter(column => {
-                return columns.indexOf(column) === -1;
-            }));
+            driver.isReturningSqlSupported()
+        ) {
+            columns.push(
+                ...this.expressionMap.extraReturningColumns.filter(column => {
+                    return columns.indexOf(column) === -1;
+                })
+            );
         }
 
         if (columns.length) {
-            let columnsExpression = columns.map(column => {
-                const name = this.escape(column.databaseName);
-                if (driver instanceof SqlServerDriver) {
-                    if (this.expressionMap.queryType === "insert" || this.expressionMap.queryType === "update") {
-                        return "INSERTED." + name;
+            let columnsExpression = columns
+                .map(column => {
+                    const name = this.escape(column.databaseName);
+                    if (driver instanceof SqlServerDriver) {
+                        if (
+                            this.expressionMap.queryType === "insert" ||
+                            this.expressionMap.queryType === "update"
+                        ) {
+                            return "INSERTED." + name;
+                        } else {
+                            return (
+                                this.escape(this.getMainTableName()) +
+                                "." +
+                                name
+                            );
+                        }
                     } else {
-                        return this.escape(this.getMainTableName()) + "." + name;
+                        return name;
                     }
-                } else {
-                    return name;
-                }
-            }).join(", ");
+                })
+                .join(", ");
 
             if (driver instanceof OracleDriver) {
-                columnsExpression += " INTO " + columns.map(column => {
-                    // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
-                    // const parameterName = "output_" + column.databaseName;
-                    const parameterName = DriverUtils.buildColumnAlias(this.connection.driver, "output", column.databaseName)
-                    this.expressionMap.nativeParameters[parameterName] = { type: driver.columnTypeToNativeParameter(column.type), dir: driver.oracle.BIND_OUT };
-                    return this.connection.driver.createParameter(parameterName, Object.keys(this.expressionMap.nativeParameters).length);
-                }).join(", ");
+                columnsExpression +=
+                    " INTO " +
+                    columns
+                        .map(column => {
+                            // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
+                            // const parameterName = "output_" + column.databaseName;
+                            const parameterName = DriverUtils.buildColumnAlias(
+                                this.connection.driver,
+                                "output",
+                                column.databaseName
+                            );
+                            this.expressionMap.nativeParameters[
+                                parameterName
+                            ] = {
+                                type: driver.columnTypeToNativeParameter(
+                                    column.type
+                                ),
+                                dir: driver.oracle.BIND_OUT
+                            };
+                            return this.connection.driver.createParameter(
+                                parameterName,
+                                Object.keys(this.expressionMap.nativeParameters)
+                                    .length
+                            );
+                        })
+                        .join(", ");
             }
             return columnsExpression;
-
         } else if (typeof this.expressionMap.returning === "string") {
             return this.expressionMap.returning;
         }
@@ -665,7 +846,11 @@ export abstract class QueryBuilder<Entity> {
         if (Array.isArray(this.expressionMap.returning)) {
             (this.expressionMap.returning as string[]).forEach(columnName => {
                 if (this.expressionMap.mainAlias!.hasMetadata) {
-                    columns.push(...this.expressionMap.mainAlias!.metadata.findColumnsWithPropertyPath(columnName));
+                    columns.push(
+                        ...this.expressionMap.mainAlias!.metadata.findColumnsWithPropertyPath(
+                            columnName
+                        )
+                    );
                 }
             });
         }
@@ -676,28 +861,39 @@ export abstract class QueryBuilder<Entity> {
      * Concatenates all added where expressions into one string.
      */
     protected createWhereExpressionString(): string {
-        return this.expressionMap.wheres.map((where, index) => {
-            switch (where.type) {
-                case "and":
-                    return (index > 0 ? "AND " : "") + this.replacePropertyNames(where.condition);
-                case "or":
-                    return (index > 0 ? "OR " : "") + this.replacePropertyNames(where.condition);
-                default:
-                    return this.replacePropertyNames(where.condition);
-            }
-        }).join(" ");
+        return this.expressionMap.wheres
+            .map((where, index) => {
+                switch (where.type) {
+                    case "and":
+                        return (
+                            (index > 0 ? "AND " : "") +
+                            this.replacePropertyNames(where.condition)
+                        );
+                    case "or":
+                        return (
+                            (index > 0 ? "OR " : "") +
+                            this.replacePropertyNames(where.condition)
+                        );
+                    default:
+                        return this.replacePropertyNames(where.condition);
+                }
+            })
+            .join(" ");
     }
 
     /**
      * Creates "WHERE" expression and variables for the given "ids".
      */
-    protected createWhereIdsExpression(ids: any|any[]): string {
+    protected createWhereIdsExpression(ids: any | any[]): string {
         const metadata = this.expressionMap.mainAlias!.metadata;
-        const normalized = (Array.isArray(ids) ? ids : [ids]).map(id => metadata.ensureEntityIdMap(id));
+        const normalized = (Array.isArray(ids) ? ids : [ids]).map(id =>
+            metadata.ensureEntityIdMap(id)
+        );
 
         // using in(...ids) for single primary key entities
-        if (!metadata.hasMultiplePrimaryKeys
-            && metadata.embeddeds.length === 0
+        if (
+            !metadata.hasMultiplePrimaryKeys &&
+            metadata.embeddeds.length === 0
         ) {
             const primaryColumn = metadata.primaryColumns[0];
 
@@ -706,40 +902,80 @@ export abstract class QueryBuilder<Entity> {
             if (!primaryColumn.transformer) {
                 return this.computeWhereParameter({
                     [primaryColumn.propertyName]: In(
-                        normalized.map(id => primaryColumn.getEntityValue(id, false))
+                        normalized.map(id =>
+                            primaryColumn.getEntityValue(id, false)
+                        )
                     )
                 });
             }
         }
 
         // create shortcuts for better readability
-        const alias = this.expressionMap.aliasNamePrefixingEnabled ? this.escape(this.expressionMap.mainAlias!.name) + "." : "";
-        let parameterIndex = Object.keys(this.expressionMap.nativeParameters).length;
+        const alias = this.expressionMap.aliasNamePrefixingEnabled
+            ? this.escape(this.expressionMap.mainAlias!.name) + "."
+            : "";
+        let parameterIndex = Object.keys(this.expressionMap.nativeParameters)
+            .length;
 
         if (metadata.primaryColumns.length > 1) {
             const whereStrings = normalized.map((id, index) => {
-
                 const whereSubStrings: string[] = [];
-                metadata.primaryColumns.forEach((primaryColumn, secondIndex) => {
-                    const parameterName = "id_" + index + "_" + secondIndex;
-                    // whereSubStrings.push(alias + this.escape(primaryColumn.databaseName) + "=:id_" + index + "_" + secondIndex);
-                    whereSubStrings.push(alias + this.escape(primaryColumn.databaseName) + " = " + this.connection.driver.createParameter(parameterName, parameterIndex));
-                    this.expressionMap.nativeParameters[parameterName] = primaryColumn.getEntityValue(id, true);
-                    parameterIndex++;
-                });
+                metadata.primaryColumns.forEach(
+                    (primaryColumn, secondIndex) => {
+                        const parameterName = "id_" + index + "_" + secondIndex;
+                        // whereSubStrings.push(alias + this.escape(primaryColumn.databaseName) + "=:id_" + index + "_" + secondIndex);
+                        whereSubStrings.push(
+                            alias +
+                                this.escape(primaryColumn.databaseName) +
+                                " = " +
+                                this.connection.driver.createParameter(
+                                    parameterName,
+                                    parameterIndex
+                                )
+                        );
+                        this.expressionMap.nativeParameters[
+                            parameterName
+                        ] = primaryColumn.getEntityValue(id, true);
+                        parameterIndex++;
+                    }
+                );
                 return whereSubStrings.join(" AND ");
             });
-            return whereStrings.length > 1 ? "(" + whereStrings.map(whereString => "(" + whereString + ")").join(" OR ") + ")" : whereStrings[0];
-
+            return whereStrings.length > 1
+                ? "(" +
+                      whereStrings
+                          .map(whereString => "(" + whereString + ")")
+                          .join(" OR ") +
+                      ")"
+                : whereStrings[0];
         } else {
             const [primaryColumn] = metadata.primaryColumns;
-            const normalizedValues = normalized.map(ent => ent[Object.keys(ent)[0]]);
-            const areAllNumbers = normalizedValues.every((id: any) => typeof id === "number");
+            const normalizedValues = normalized.map(
+                ent => ent[Object.keys(ent)[0]]
+            );
+            const areAllNumbers = normalizedValues.every(
+                (id: any) => typeof id === "number"
+            );
+            let paramAndValues;
             if (areAllNumbers) {
-                return `${alias + this.escape(primaryColumn.databaseName)} IN (${normalizedValues.join(", ")})`;
+                paramAndValues = DriverUtils.buildParamAndValuesForInClause(
+                    this.connection.driver,
+                    `${alias + this.escape(primaryColumn.databaseName)}`,
+                    normalizedValues
+                );
+                return `${
+                    paramAndValues.param
+                } IN (${paramAndValues.values.join(", ")})`;
             } else {
-                this.expressionMap.parameters["qb_ids"] = normalized.map(val => primaryColumn.getEntityValue(val, true));
-                return alias + this.escape(primaryColumn.databaseName) + " IN (:...qb_ids)";
+                paramAndValues = DriverUtils.buildParamAndValuesForInClause(
+                    this.connection.driver,
+                    `${alias + this.escape(primaryColumn.databaseName)}`,
+                    normalized.map(val =>
+                        primaryColumn.getEntityValue(val, true)
+                    )
+                );
+                this.expressionMap.parameters["qb_ids"] = paramAndValues.values;
+                return `${paramAndValues.param} IN (:...qb_ids)`;
             }
         }
     }
@@ -747,9 +983,15 @@ export abstract class QueryBuilder<Entity> {
     /**
      * Computes given where argument - transforms to a where string all forms it can take.
      */
-    protected computeWhereParameter(where: string|((qb: this) => string)|Brackets|ObjectLiteral|ObjectLiteral[]) {
-        if (typeof where === "string")
-            return where;
+    protected computeWhereParameter(
+        where:
+            | string
+            | ((qb: this) => string)
+            | Brackets
+            | ObjectLiteral
+            | ObjectLiteral[]
+    ) {
+        if (typeof where === "string") return where;
 
         if (where instanceof Brackets) {
             const whereQueryBuilder = this.createQueryBuilder();
@@ -757,83 +999,153 @@ export abstract class QueryBuilder<Entity> {
             const whereString = whereQueryBuilder.createWhereExpressionString();
             this.setParameters(whereQueryBuilder.getParameters());
             return whereString ? "(" + whereString + ")" : "";
-
         } else if (where instanceof Function) {
             return where(this);
-
         } else if (where instanceof Object) {
-            const wheres: ObjectLiteral[] = Array.isArray(where) ? where : [where];
+            const wheres: ObjectLiteral[] = Array.isArray(where)
+                ? where
+                : [where];
             let andConditions: string[];
-            let parameterIndex = Object.keys(this.expressionMap.nativeParameters).length;
+            let parameterIndex = Object.keys(
+                this.expressionMap.nativeParameters
+            ).length;
 
             if (this.expressionMap.mainAlias!.hasMetadata) {
                 andConditions = wheres.map((where, whereIndex) => {
-                    const propertyPaths = EntityMetadata.createPropertyPath(this.expressionMap.mainAlias!.metadata, where);
+                    const propertyPaths = EntityMetadata.createPropertyPath(
+                        this.expressionMap.mainAlias!.metadata,
+                        where
+                    );
 
-                    return propertyPaths.map((propertyPath, propertyIndex) => {
-                        const columns = this.expressionMap.mainAlias!.metadata.findColumnsWithPropertyPath(propertyPath);
-                        return columns.map((column, columnIndex) => {
+                    return propertyPaths
+                        .map((propertyPath, propertyIndex) => {
+                            const columns = this.expressionMap.mainAlias!.metadata.findColumnsWithPropertyPath(
+                                propertyPath
+                            );
+                            return columns
+                                .map((column, columnIndex) => {
+                                    const aliasPath = this.expressionMap
+                                        .aliasNamePrefixingEnabled
+                                        ? `${this.alias}.${propertyPath}`
+                                        : column.propertyPath;
+                                    let parameterValue = column.getEntityValue(
+                                        where,
+                                        true
+                                    );
+                                    if (parameterValue === undefined) return;
+                                    const parameterName =
+                                        "where_" +
+                                        whereIndex +
+                                        "_" +
+                                        propertyIndex +
+                                        "_" +
+                                        columnIndex;
+                                    const parameterBaseCount = Object.keys(
+                                        this.expressionMap.nativeParameters
+                                    ).filter(x => x.startsWith(parameterName))
+                                        .length;
 
-                            const aliasPath = this.expressionMap.aliasNamePrefixingEnabled ? `${this.alias}.${propertyPath}` : column.propertyPath;
-                            let parameterValue = column.getEntityValue(where, true);
-                            if (parameterValue === undefined)
-                                return;
-                            const parameterName = "where_" + whereIndex + "_" + propertyIndex + "_" + columnIndex;
-                            const parameterBaseCount = Object.keys(this.expressionMap.nativeParameters).filter(x => x.startsWith(parameterName)).length;
-
-                            if (parameterValue === null) {
-                                return `${aliasPath} IS NULL`;
-
-                            } else if (parameterValue instanceof FindOperator) {
-                                let parameters: any[] = [];
-                                if (parameterValue.useParameter) {
-                                    const realParameterValues: any[] = parameterValue.multipleParameters ? parameterValue.value : [parameterValue.value];
-                                    realParameterValues.forEach((realParameterValue, realParameterValueIndex) => {
-
-                                        // don't create parameters for number to prevent max number of variables issues as much as possible
-                                        if (typeof realParameterValue === "number") {
-                                            parameters.push(realParameterValue);
-
-                                        } else {
-                                            this.expressionMap.nativeParameters[parameterName + (parameterBaseCount + realParameterValueIndex)] = realParameterValue;
-                                            parameterIndex++;
-                                            parameters.push(this.connection.driver.createParameter(parameterName + (parameterBaseCount + realParameterValueIndex), parameterIndex - 1));
+                                    if (parameterValue === null) {
+                                        return `${aliasPath} IS NULL`;
+                                    } else if (
+                                        parameterValue instanceof FindOperator
+                                    ) {
+                                        let parameters: any[] = [];
+                                        if (parameterValue.useParameter) {
+                                            const realParameterValues: any[] = parameterValue.multipleParameters
+                                                ? parameterValue.value
+                                                : [parameterValue.value];
+                                            realParameterValues.forEach(
+                                                (
+                                                    realParameterValue,
+                                                    realParameterValueIndex
+                                                ) => {
+                                                    // don't create parameters for number to prevent max number of variables issues as much as possible
+                                                    if (
+                                                        typeof realParameterValue ===
+                                                        "number"
+                                                    ) {
+                                                        parameters.push(
+                                                            realParameterValue
+                                                        );
+                                                    } else {
+                                                        this.expressionMap.nativeParameters[
+                                                            parameterName +
+                                                                (parameterBaseCount +
+                                                                    realParameterValueIndex)
+                                                        ] = realParameterValue;
+                                                        parameterIndex++;
+                                                        parameters.push(
+                                                            this.connection.driver.createParameter(
+                                                                parameterName +
+                                                                    (parameterBaseCount +
+                                                                        realParameterValueIndex),
+                                                                parameterIndex -
+                                                                    1
+                                                            )
+                                                        );
+                                                    }
+                                                }
+                                            );
                                         }
-                                    });
-                                }
-                                return parameterValue.toSql(this.connection, aliasPath, parameters);
-
-                            } else {
-                                this.expressionMap.nativeParameters[parameterName] = parameterValue;
-                                parameterIndex++;
-                                const parameter = this.connection.driver.createParameter(parameterName, parameterIndex - 1);
-                                return `${aliasPath} = ${parameter}`;
-                            }
-
-                        }).filter(expression => !!expression).join(" AND ");
-                    }).filter(expression => !!expression).join(" AND ");
+                                        return parameterValue.toSql(
+                                            this.connection,
+                                            aliasPath,
+                                            parameters
+                                        );
+                                    } else {
+                                        this.expressionMap.nativeParameters[
+                                            parameterName
+                                        ] = parameterValue;
+                                        parameterIndex++;
+                                        const parameter = this.connection.driver.createParameter(
+                                            parameterName,
+                                            parameterIndex - 1
+                                        );
+                                        return `${aliasPath} = ${parameter}`;
+                                    }
+                                })
+                                .filter(expression => !!expression)
+                                .join(" AND ");
+                        })
+                        .filter(expression => !!expression)
+                        .join(" AND ");
                 });
-
             } else {
                 andConditions = wheres.map((where, whereIndex) => {
-                    return Object.keys(where).map((key, parameterIndex) => {
-                        const parameterValue = where[key];
-                        const aliasPath = this.expressionMap.aliasNamePrefixingEnabled ? `${this.alias}.${key}` : key;
-                        if (parameterValue === null) {
-                            return `${aliasPath} IS NULL`;
-
-                        } else {
-                            const parameterName = "where_" + whereIndex + "_" + parameterIndex;
-                            this.expressionMap.nativeParameters[parameterName] = parameterValue;
-                            parameterIndex++;
-                            return `${aliasPath} = ${this.connection.driver.createParameter(parameterName, parameterIndex - 1)}`;
-                        }
-                    }).join(" AND ");
+                    return Object.keys(where)
+                        .map((key, parameterIndex) => {
+                            const parameterValue = where[key];
+                            const aliasPath = this.expressionMap
+                                .aliasNamePrefixingEnabled
+                                ? `${this.alias}.${key}`
+                                : key;
+                            if (parameterValue === null) {
+                                return `${aliasPath} IS NULL`;
+                            } else {
+                                const parameterName =
+                                    "where_" +
+                                    whereIndex +
+                                    "_" +
+                                    parameterIndex;
+                                this.expressionMap.nativeParameters[
+                                    parameterName
+                                ] = parameterValue;
+                                parameterIndex++;
+                                return `${aliasPath} = ${this.connection.driver.createParameter(
+                                    parameterName,
+                                    parameterIndex - 1
+                                )}`;
+                            }
+                        })
+                        .join(" AND ");
                 });
             }
 
             if (andConditions.length > 1)
-                return andConditions.map(where => "(" + where + ")").join(" OR ");
+                return andConditions
+                    .map(where => "(" + where + ")")
+                    .join(" OR ");
 
             return andConditions.join("");
         }
@@ -847,5 +1159,4 @@ export abstract class QueryBuilder<Entity> {
     protected obtainQueryRunner() {
         return this.queryRunner || this.connection.createQueryRunner("master");
     }
-
 }
