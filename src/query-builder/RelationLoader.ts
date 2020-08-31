@@ -120,10 +120,16 @@ export class RelationLoader {
                 value => typeof value === "number"
             );
 
-            const paramAndValues = DriverUtils.buildParamAndValuesForInClause(this.connection.driver, `${joinAliasName}.${columns[0].propertyPath}`, values);
+            const paramAndValues = DriverUtils.buildParamAndValuesForInClause(
+                this.connection.driver,
+                `${joinAliasName}.${columns[0].propertyPath}`,
+                values
+            );
             if (areAllNumbers) {
                 qb.where(
-                    `${paramAndValues.param} IN (${paramAndValues.values.join(", ")})`
+                    `${paramAndValues.param} IN (${paramAndValues.values.join(
+                        ", "
+                    )})`
                 );
             } else {
                 // Hack Julien (Fix the parameter too long issue we have on oracle (limit is 30)
@@ -134,9 +140,7 @@ export class RelationLoader {
                     joinAliasName,
                     columns[0].propertyName
                 );
-                qb.where(
-                    `${paramAndValues.param} IN (:...${parameterName})`
-                );
+                qb.where(`${paramAndValues.param} IN (:...${parameterName})`);
                 qb.setParameter(parameterName, paramAndValues.values);
             }
         } else {
@@ -279,7 +283,7 @@ export class RelationLoader {
         relation: RelationMetadata,
         entityOrEntities: ObjectLiteral | ObjectLiteral[],
         queryRunner?: QueryRunner,
-        queryBuilder?: SelectQueryBuilder<any>;
+        queryBuilder?: SelectQueryBuilder<any>
     ): Promise<any> {
         const entities = Array.isArray(entityOrEntities)
             ? entityOrEntities
@@ -305,7 +309,11 @@ export class RelationLoader {
                 value => typeof value === "number"
             );
 
-            const paramAndValues = DriverUtils.buildParamAndValuesForInClause(this.connection.driver, `${joinAlias}.${joinColumn.propertyName}`, values);
+            const paramAndValues = DriverUtils.buildParamAndValuesForInClause(
+                this.connection.driver,
+                `${joinAlias}.${joinColumn.propertyName}`,
+                values
+            );
             if (areAllNumbers) {
                 joinColumnConditions.push(
                     `${paramAndValues.param} IN (${paramAndValues.values.join(
@@ -388,7 +396,11 @@ export class RelationLoader {
                 value => typeof value === "number"
             );
 
-            const paramAndValues = DriverUtils.buildParamAndValuesForInClause(this.connection.driver, `${joinAlias}.${column.propertyName}`, values);
+            const paramAndValues = DriverUtils.buildParamAndValuesForInClause(
+                this.connection.driver,
+                `${joinAlias}.${column.propertyName}`,
+                values
+            );
             if (areAllNumbers) {
                 joinColumnConditions.push(
                     `${paramAndValues.param} IN (${paramAndValues.values.join(
